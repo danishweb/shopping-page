@@ -11,5 +11,10 @@
       "src": "/(.*)",
       "dest": "src/index.ts"
     }
-  ]
+  ],
+  "env": {
+    "MONGODB_URI": "mongodb+srv://spinach:39QUN85k0bXRw9QX@file-management.cjyei.mongodb.net/karini?retryWrites=true&w=majority&appName=shopping-page",
+    "ALLOWED_ORIGINS": "http://localhost:3000,https://karini-fe.vercel.app",
+    "NODE_ENV": "production"
+  }
 }
