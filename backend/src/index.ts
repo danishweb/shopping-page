@@ -12,6 +12,7 @@ import itemsRouter from "./routes/items";
 import cartRouter from "./routes/cart";
 import chatRouter from "./routes/chat";
 
+// Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 4000;
 
@@ -44,13 +45,17 @@ app.use(cors({
 
 app.use(express.json());
 
+// API Routes
 app.use("/api/items", itemsRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/chat", chatRouter);
 
+// Root route
 app.get("/", (req: Request, res: Response) => {
   const { statusCode, body } = successResponse({
     message: "Express backend is running!",
+    env: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString()
   });
   res.status(statusCode).json(body);
 });
@@ -58,17 +63,27 @@ app.get("/", (req: Request, res: Response) => {
 // Centralized error handler (should be last middleware)
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Only start the server if we're not in a serverless environment
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
 
 // Global error handlers
 process.on("uncaughtException", (err) => {
   console.error("Uncaught Exception:", err);
-  process.exit(1);
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
 });
 
 process.on("unhandledRejection", (reason: any) => {
   console.error("Unhandled Rejection:", reason);
-  process.exit(1);
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
 });
+
+// Export the Express app for Vercel serverless deployment
+export default app;
