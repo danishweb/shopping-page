@@ -9,6 +9,8 @@ import { connectDB } from "./db/connect";
 
 // Routes
 import itemsRouter from "./routes/items";
+import cartRouter from "./routes/cart";
+import chatRouter from "./routes/chat";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -17,12 +19,21 @@ const PORT = process.env.PORT || 4000;
 connectDB();
 
 // CORS setup
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000").split(",").map(o => o.trim());
+const defaultAllowedOrigins = [
+  "http://localhost:3000",
+  "https://karini-ai.vercel.app",
+  "https://karini-ai-frontend.vercel.app"
+];
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? [...defaultAllowedOrigins, ...process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())]
+  : defaultAllowedOrigins;
+
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
       return callback(null, true);
     } else {
       return callback(new Error("Not allowed by CORS"));
@@ -33,9 +44,7 @@ app.use(cors({
 
 app.use(express.json());
 
-import cartRouter from "./routes/cart";
 app.use("/api/items", itemsRouter);
-import chatRouter from "./routes/chat";
 app.use("/api/cart", cartRouter);
 app.use("/api/chat", chatRouter);
 
@@ -44,17 +53,6 @@ app.get("/", (req: Request, res: Response) => {
     message: "Express backend is running!",
   });
   res.status(statusCode).json(body);
-});
-
-// Example error route for demonstration
-app.get("/error", (req: Request, res: Response, next: NextFunction) => {
-  const err = new Error("This is a sample error!");
-  // Optionally add properties for industry-standard error structure
-  // @ts-ignore
-  err.statusCode = 400;
-  // @ts-ignore
-  err.code = "BAD_REQUEST";
-  next(err);
 });
 
 // Centralized error handler (should be last middleware)
@@ -67,14 +65,10 @@ app.listen(PORT, () => {
 // Global error handlers
 process.on("uncaughtException", (err) => {
   console.error("Uncaught Exception:", err);
-  // Optionally, log to a file or external service
-  // Exit process after logging
   process.exit(1);
 });
 
 process.on("unhandledRejection", (reason: any) => {
   console.error("Unhandled Rejection:", reason);
-  // Optionally, log to a file or external service
-  // Exit process after logging
   process.exit(1);
 });
