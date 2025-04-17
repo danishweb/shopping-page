@@ -11,13 +11,7 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
     let query = {};
 
     if (typeof search === "string" && search.trim() !== "") {
-      // Case-insensitive search by Title or Variant SKU
-      query = {
-        $or: [
-          { Title: { $regex: search, $options: "i" } },
-          { "Variant SKU": { $regex: search, $options: "i" } },
-        ],
-      };
+      query = { $text: { $search: search } };
     }
 
     const items = await Item.find(query).lean();
@@ -37,27 +31,6 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
       )
     );
     const { statusCode, body } = successResponse(filtered);
-    res.status(statusCode).json(body);
-  } catch (err) {
-    next(err);
-  }
-});
-
-// GET /api/items/:sku
-router.get("/:sku", async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { sku } = req.params;
-    const item = await Item.findOne({ "Variant SKU": sku }).lean();
-    if (!item) {
-      const { statusCode, body } = errorResponse(
-        "NOT_FOUND",
-        `Item with SKU '${sku}' not found`,
-        null,
-        404
-      );
-      return res.status(statusCode).json(body);
-    }
-    const { statusCode, body } = successResponse(item);
     res.status(statusCode).json(body);
   } catch (err) {
     next(err);

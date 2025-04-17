@@ -45,7 +45,12 @@ const ItemSchema: Schema = new Schema({
   "Variant Fulfillment Service": { type: String },
   "Variant Price": { type: Number, required: true },
   "Variant Compare At Price": { type: Schema.Types.Mixed },
-  "Image Src": { type: String }
+  "Image Src": { type: String },
+});
+
+ItemSchema.index({
+  Title: "text",
+  "Variant SKU": "text",
 });
 
 export default mongoose.model<IItem>("Item", ItemSchema);
